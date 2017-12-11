@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sport Streams</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	 <!-- Compiled and minified CSS -->
+  	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+  	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
+  	<!-- Compiled and minified JavaScript -->
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+          
+	<style type="text/css">
+		.nba, .nfl, .soccer, .cfb{
+			height: 500px;
+			width: 48%;
+			padding: 10px;
+			display: block;
+			margin: auto;
+		}
+
+		.nbaLogo, .nflLogo, .soccerLogo, .cfbLogo{
+			height: 136px;
+			margin-top: 10px;
+		}
+
+		.nflList li, .nbaList li, .soccerList li, .cfbList li {
+			/*padding: 10px;*/
+			/*font-size: 16pt;*/
+		}
+
+		.tabs li a{
+			color: black !important;
+			font-size: 14pt;
+			font-weight: bold;
+		}
+
+		 .tabs .indicator {
+		 	background-color: black;
+		 }
+
+		 .linkToReddit {
+		 	display: inline-flex;
+		 }
+
+	</style>
+</head>
+<body>
+
+	<!-- <div class="nba">
+		<center><img class="nbaLogo" src="http://diylogodesigns.com/blog/wp-content/uploads/2016/06/NBA-logo-png-download-free.png"/></center>
+	  <div class="progress" id="loaderNBA">
+	      <div class="indeterminate"></div>
+	  </div>
+	</div> -->
+
+	<div class="row">
+    <div class="col s12">
+      <ul class="tabs">
+        <li class="tab col s3"><a class="active" href="#test1">NBA</a></li>
+        <li class="tab col s3"><a href="#test2">NFL</a></li>
+        <li class="tab col s3"><a href="#test3">Soccer</a></li>
+        <li class="tab col s3"><a href="#test4">College Football</a></li>
+      </ul>
+    </div>
+    <div class="nba" id="test1">
+		<center><img class="nbaLogo" src="http://diylogodesigns.com/blog/wp-content/uploads/2016/06/NBA-logo-png-download-free.png"/></center>
+	  <div class="progress" id="loaderNBA">
+	      <div class="indeterminate"></div>
+	  </div>
+	</div>
+    <div class="nfl" id="test2">
+		<center><img class="nflLogo" src="https://images.complex.com/complex/image/upload/c_limit,w_680/fl_lossy,pg_1,q_auto/dtcgpflfr7yxaucc7sfz.jpg"></center>
+	  <div class="progress" id="loaderNFL">
+	      <div class="indeterminate"></div>
+	  </div>
+	</div>
+    <div class="soccer" id="test3">
+		<center><img class="soccerLogo" src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Logo_uefa_2012.png"></center>
+	  <div class="progress" id="loaderSOCCER">
+	      <div class="indeterminate"></div>
+	  </div>
+	</div>
+    <div class="cfb" id="test4" >
+    <center><img class="cfbLogo" src="https://upload.wikimedia.org/wikipedia/en/thumb/4/44/College_Football_Playoff_logo.svg/915px-College_Football_Playoff_logo.svg.png"></center>
+	  <div class="progress" id="loaderCFB">
+	      <div class="indeterminate"></div>
+	  </div>
+  	</div>
+
+	<script type="text/javascript">
+
+		initializeSubReddit("https://www.reddit.com/r/nbastreams/new.json?sort=hot", "nba");
+		initializeSubReddit("https://www.reddit.com/r/nflstreams/new.json?sort=hot", "nfl");
+		initializeSubReddit("https://www.reddit.com/r/soccerstreams/new.json?sort=hot", "soccer");
+		initializeSubReddit("https://www.reddit.com/r/CFBStreams/new.json?sort=hot", "cfb");
+
+
+
+		
+		function initializeSubReddit(url, className){
+			$.getJSON( url, function( data ) {
+			$("#loader"+className.toUpperCase()).hide();
+			  var items = [];
+			  var links = data["data"]["children"];
+			  // console.log(links);
+			  for(var i = 0; i < links.length; i++){
+
+				var title = links[i]["data"]["title"];
+				var numComments = links[i]["data"]["num_comments"];
+
+				if (isValidStream(title, numComments)){
+					var titleHtml = '<div class="collapsible-header"><i class="material-icons">live_tv</i>'+title+'</div>';
+
+					var linkToReddit = "<a class='linkToReddit' href='" + links[i]["data"]["url"] + "'>"+'<i class="material-icons">link</i>Link to reddit thread</a>';
+
+					var threadURL = links[i]["data"]["url"]+".json?sort=top";
+
+					// $.getJSON(threadURL, function( data ) {
+
+					//   var items = [];
+					//   var links = data["data"]["children"];
+					//   console.log(links);
+					//   // for(var i = 0; i < links.length; i++){
+					// 		// console.log(links["body_html"]);
+					// 	// }
+					//  });
+ 
+					var body = '<div class="collapsible-body">'+linkToReddit+'</div>'; 
+					items.push( "<li>" + titleHtml + body + "</li>" ); //<a href='" + links[i]["data"]["url"] + "'></a>
+				}
+			  }
+
+			  if (items.length > 0){
+			 
+				  $( '<ul/>', {
+				  	class: "collapsible popout "+className+"List",
+				    html: items.join( "" )
+				  }).appendTo( "." + className ).attr("data-collapsible", "accordion");
+
+				  $('.' + className+"List").collapsible();
+
+				}else{
+					$("<center><h5> No games posted yet </h5></center>").appendTo("."+className);
+				}
+
+			});
+		}
+
+		function isValidStream(title, numComments){
+			var vs = ~title.toLowerCase().indexOf("vs");
+			var at = ~title.toLowerCase().indexOf("@");
+			return (vs || at) && numComments > 0;
+		}
+
+		$(document).ready(function(){
+		    $('ul.tabs').tabs();
+		    // $('.collapsible').collapsible();
+		  });
+	</script>
+
+
+</body>
+</html>
